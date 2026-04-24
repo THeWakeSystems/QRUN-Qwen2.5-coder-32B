@@ -1,0 +1,6 @@
+{
+  "_note": "建议直接复用基础模型 tokenizer_config.json。",
+  "tokenizer_class": "Qwen2Tokenizer",
+  "model_max_length": 32768,
+  "padding_side": "left"
+}
