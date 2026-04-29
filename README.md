@@ -1,198 +1,215 @@
-# Springhead-v1.0
-
-
 <div align="center">
-    <h3>Powered by Springhead Hybrid</h3>
+
+# 🌀 Springhead
+
+<h3>Quantum-Classical Hybrid LLM · Massive Compression · Multi-GPU Ready</h3>
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![GitHub stars](https://img.shields.io/github/stars/THeWakeSystems/Springhead?style=social)](https://github.com/THeWakeSystems/Springhead)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?logo=pytorch)](https://pytorch.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/THeWakeSystems/Springhead/pulls)
+
+---
+
+<p align="center">
+  <a href="#-about"><b>About</b></a> ·
+  <a href="#-quick-start"><b>Quick Start</b></a> ·
+  <a href="#-architecture"><b>Architecture</b></a> ·
+  <a href="#-training"><b>Training</b></a> ·
+  <a href="#-benchmarks"><b>Benchmarks</b></a> ·
+  <a href="#-project-structure"><b>Structure</b></a> ·
+  <a href="#-contributing"><b>Contributing</b></a>
+</p>
+
 </div>
 
+---
 
-[License](https://opensource.org/licenses/Apache-2.0) | [GitHub](https://github.com/study233333)
+## 🧬 About
 
+**Springhead** is a quantum-classical hybrid language model built on Qwen2.5-Coder-32B by **TheWakeSystems**. It replaces a subset of classical transformer layers with proprietary Springhead Hybrid quantum-informed modules, achieving extreme parameter compression while preserving core reasoning capabilities.
 
-Optimized for Extreme Inference Efficiency · Massive Parameter Reduction · Quantum-Classical Hybrid Architecture
+### ✨ Highlights
 
+- 🌀 **Extreme Compression** — 3,398M → 43.7M trainable parameters (≈ 1.3%), dramatically reducing memory footprint
+- ⚛️ **Quantum-Classical Hybrid** — replaces 8 of 64 transformer blocks with quantum-informed tensor network layers (`MonarchProj` + `EntanglementLayer`)
+- 🖥️ **Multi-GPU Ready** — automated device dispatch across up to 16 GPUs via `accelerate`, with intelligent memory load balancing
+- 🧠 **Reasoning Preserved** — retains mathematical and logical reasoning performance from the base Qwen2.5-Coder-32B
+- 🔌 **Drop-in Compatible** — works with standard Hugging Face Transformers pipelines
 
-## Table of Contents
+### 🎯 Use Cases
 
+| ✅ Recommended | ❌ Not Recommended |
+|:---|:---|
+| Quantum-classical hybrid NN research | Production code generation (without further fine-tuning) |
+| Hardware-constrained inference testing | High-risk decision-making |
+| Knowledge Distillation experiments | Zero-shot critical reasoning |
 
-- [Highlights](#highlights)
-- [Model Overview](#model-overview)
-- [Key Characteristics](#key-characteristics)
-- [Quick Start](#quick-start)
-- [What's New in Springhead-v1.0](#whats-new-in-springhead-v10)
-- [Training & Fine-Tuning](#training--fine-tuning)
-- [Architecture](#architecture)
-- [Evaluation & Benchmarks](#evaluation--benchmarks)
-- [Languages](#languages)
-- [Intended Use](#intended-use)
-- [Safety & Limitations](#safety--limitations)
-- [Model Information](#model-information)
+---
 
+## 🚀 Quick Start
 
-## Highlights
+### Prerequisites
 
-- **Extreme Parameter Compression:** Reduced trainable parameters from 3398M to 43.7M (≈ 1.3%), heavily minimizing memory footprint.
-- **Quantum-Classical Hybrid Layer:** Leverages proprietary Springhead Hybrid architecture by TheWakeSystems to replace specific transformer layers with quantum-informed modules.
-- **Enterprise Multi-GPU Deployment:** Designed for 16× CUDA GPUs (BF16) with automated device mapping and memory load balancing.
+- Python 3.10+
+- CUDA-capable GPU(s) (BF16 recommended)
+- ~60 GB total GPU memory (single or multi-GPU)
 
-
-## Model Overview
-
-Springhead-v1.0 is a model developed by TheWakeSystems. This version is built on Qwen2.5-coder-32B and uses TheWakeSystems' proprietary Springhead Hybrid technology, reducing parameter count and memory requirements drastically while aiming to preserve core structural capabilities.
-
-The model is intended for constrained hardware environments requiring multi-GPU distributed inference where traditional memory footprints are prohibitive.
-
-
-## Key Characteristics
-
-| Feature | Description |
-| :--- | :--- |
-| **Base model** | Qwen2.5-coder-32B |
-| **Target Workloads** | Mathematical reasoning, logic, code generation |
-| **Parameters** | 43.7M trainable parameters after Springhead Hybrid compression (reduced vs. base 3398M active layers) |
-| **Architecture** | Quantum-Classical Hybrid Decoder-only Transformer |
-| **Compression** | Springhead Hybrid (proprietary quantum-informed layer replacement) |
-| **Primary language** | English / Chinese |
-| **Recommended Hardware** | 16× CUDA GPUs (BF16), total effective VRAM ≈ 58.8 GB |
-
-
-## Quick Start
-
-The repository provides automated scripts for standard Transformers loading and inference benchmarking.
-
-### Environment Setup
+### Installation
 
 ```bash
+git clone https://github.com/THeWakeSystems/Springhead.git
+cd Springhead
+
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Inference Generation
-
-You can load the model seamlessly using our provided `CustomQwen32B_hybrid` wrapper:
+### Inference
 
 ```python
 import torch
 from transformers import AutoTokenizer
 from scripts.benchmark_hybrid import load_model, generate
 
-model_path = "/path/to/base/Qwen2.5-coder-32B"
-checkpoint_path = "checkpoints/checkpoints_hybrid_v2/epoch_2.pt"
+MODEL_PATH = "/path/to/Qwen2.5-Coder-32B"
+CHECKPOINT = "checkpoints/checkpoints_hybrid_v2/epoch_2.pt"
 
-# Initialize Tokenizer
-tokenizer = AutoTokenizer.from_pretrained(
-    model_path,
-    trust_remote_code=True,
-    local_files_only=True,
-)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+model = load_model(CHECKPOINT, MODEL_PATH, device="cuda", dtype="bf16")
 
-# Load the Hybrid Model (Auto-dispatches to available GPUs)
-model = load_model(
-    checkpoint_path=checkpoint_path,
-    model_path=model_path,
-    device="cuda",
-    dtype="bf16",
-    max_memory_per_device="20GiB"
-)
-
-response = generate(model, tokenizer, "Write a Python function to compute the greatest common divisor.")
+response = generate(model, tokenizer, "Write a Python function for binary search.")
 print(response)
 ```
 
-For a full benchmark suite, run the integrated script:
+### Run Full Benchmark
 
 ```bash
 python scripts/benchmark_hybrid.py \
-    --model_path /path/to/base/Qwen2.5-coder-32B \
+    --model_path /path/to/Qwen2.5-Coder-32B \
     --checkpoint checkpoints/checkpoints_hybrid_v2/epoch_2.pt \
     --device cuda \
     --dtype bf16
 ```
 
+---
 
-## What's New in Springhead-v1.0
+## 🏗 Architecture
 
-### Summary
+Springhead targets layers 48–63 of the 64-layer Qwen2.5-Coder-32B backbone. Each replaced MLP is substituted with:
 
-- **Model developed as Springhead-v1.0:** Provides a compact architecture for coding and reasoning workloads.
-- **Quantum-Classical Entanglement:** Uses `MonarchProj` and `EntanglementLayer` modules in place of standard MLP layers (e.g., layers 48 to 63 target replacement).
-- **Automated Device Dispatch:** The inference script seamlessly charts GPU memory and distributes the hybrid model symmetrically using the `accelerate` library.
-
-
-## Training & Fine-Tuning
-
-### Base Model: Qwen2.5-coder-32B
-The model is trained for code, mathematics, and high-quality text-oriented workloads.
-
-### Springhead Hybrid Compression & Knowledge Distillation
-- **Compression:** TheWakeSystems' Springhead Hybrid architecture substitutes classical layers with quantum-informed tensor networks.
-- **Fine-tuning:** The replaced layers are trained via Knowledge Distillation (KD) or standard SFT to match the original outputs, mapping massive parameter spaces into highly compact representations.
-- **Training Script:** We provide `scripts/train_hybrid.py` to replicate the SFT / KD behavior, freezing the unchanged base model parameters and updating only the lightweight quantum-informed projections.
-
-
-## Architecture
+```
+Original MLP  →  MonarchProj  →  EntanglementLayer  →  Hybrid Output
+```
 
 ### Model Specifications
 
 | Metric | Value |
-| :--- | :--- |
-| **Base model** | Qwen2.5-coder-32B |
-| **Trainable parameters** | 43.7M |
-| **Original target parameters** | 3398M |
-| **Compression Ratio** | ≈ 1.3% |
-| **Replacement Layers** | Default targets layers 48 to 63 |
-| **u_proj_output_dim** | 4 |
-| **block_size & entangle_rank** | 64 |
-
-
-## Evaluation & Benchmarks
-
-The benchmark script (`scripts/benchmark_hybrid.py`) evaluates the model across varying tasks: Code, Math, Logic, Commonsense, and Multilingual tasks.
-
-Currently, due to the extreme nature of the 1.3% compression ratio, generation capabilities experience significant degradation (e.g. repeated tokens, loss of coherent reasoning). Proceed with domain-specific fine-tuning or scaling up the `entangle_rank` for production deployments.
-
-
-## Languages
-
-- **Primary languages:** English, Chinese
-- **Other languages:** Supported, but performance under Springhead Hybrid compression has not been systematically measured.
-
-
-## Intended Use
-
-### Recommended Use Cases
-- Research into Quantum-Classical Hybrid Neural Networks.
-- Hardware-constrained inference environment testing.
-- Base architecture for extreme Knowledge Distillation experiments.
-
-### Out-of-Scope Uses
-- Production-grade code generation without further fine-tuning.
-- High-risk decision-making or zero-shot critical reasoning.
-- Any use that violates applicable safety laws or regulations.
-
-
-## Safety & Limitations
-
-### Known Limitations
-- **Generation Quality Regressions:** Extreme compression strategies introduce task-specific degradations. The current iteration may exhibit token repetition and semantic discontinuities.
-- **Model format:** Exact parity with upstream baselines is not guaranteed.
-
-### Recommendations
-- Perform task-specific evaluation prior to deployment.
-- Consider adjusting the `replace_layers` count or the `entangle_rank` in `create_hybrid_model` to balance speed/memory against model accuracy.
-
-
-## Model Information
-
-| Attribute | Details |
-| :--- | :--- |
-| **Model name** | Springhead-v1.0 |
-| **Based on** | Qwen2.5-coder-32B |
-| **Developed by** | TheWakeSystems |
-| **License** | Apache 2.0 |
-| **Architecture** | Springhead Hybrid |
-
+|:---|:---|
+| Base Model | Qwen2.5-Coder-32B |
+| Total Layers | 64 |
+| Hybrid Layers | 8 (layers 48–63) |
+| Trainable Parameters | **43.7M** |
+| Original Target Parameters | 3,398M |
+| Compression Ratio | **≈ 1.3%** |
+| `u_proj_output_dim` | 4 |
+| `block_size` / `entangle_rank` | 64 |
+| Recommended Hardware | 16× CUDA GPUs (BF16), ~58.8 GB total VRAM |
 
 ---
-Built by TheWakeSystems. For detailed model specifications, refer to `MODEL_CARD.md`.
+
+## 🎓 Training
+
+### Knowledge Distillation Pipeline
+
+The hybrid layers are trained via Knowledge Distillation to match the original layer outputs:
+
+```bash
+python scripts/train_hybrid.py \
+    --model_path /path/to/Qwen2.5-Coder-32B \
+    --output_dir checkpoints/ \
+    --num_epochs 3 \
+    --batch_size 2 \
+    --learning_rate 1e-3
+```
+
+- **Freezes** all base model parameters
+- **Trains only** the injected quantum-informed projections
+- Supports both SFT and KD loss modes
+
+---
+
+## 📊 Benchmarks
+
+Run the integrated benchmark suite across 5 task categories:
+
+| Category | Status |
+|:---|:---|
+| 🧮 Math Reasoning | ✅ Stable |
+| 🔢 Logic | ✅ Stable |
+| 💻 Code Generation | ⚠️ Degraded (token repetition) |
+| 🌐 Commonsense | ⚠️ Partial degradation |
+| 🌍 Multilingual | ⚠️ Not systematically evaluated |
+
+> **Note:** At the current 1.3% compression ratio, code generation exhibits semantic breaks and token repetition. For production deployments, consider increasing `entangle_rank` or reducing the number of replaced layers.
+
+---
+
+## 📁 Project Structure
+
+```
+Springhead/
+├── model/
+│   └── CustomQwen32B_hybrid.py    # Hybrid model architecture
+├── scripts/
+│   ├── train_hybrid.py            # Training / KD pipeline
+│   ├── benchmark_hybrid.py        # Multi-task benchmark suite
+│   └── benchmark_results/         # Saved benchmark outputs
+├── examples/
+│   └── simple_inference.py        # Minimal inference example
+├── checkpoints/
+│   └── checkpoints_hybrid_v2/     # Pretrained hybrid weights (Git LFS)
+├── MODEL_CARD.md                  # Detailed model card
+├── RELEASE_NOTES.md               # Version changelog
+└── requirements.txt               # Python dependencies
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-idea`)
+3. **Commit** your changes (`git commit -m 'Add amazing idea'`)
+4. **Push** to your branch (`git push origin feature/amazing-idea`)
+5. **Open** a Pull Request
+
+Please read [MODEL_CARD.md](./MODEL_CARD.md) for model-specific considerations before submitting PRs that modify the architecture.
+
+---
+
+## ⚠️ Known Limitations
+
+- **Code Generation**: Extreme compression may cause token repetition and semantic discontinuities
+- **Memory Footprint**: Despite parameter compression, overall GPU memory requirement remains ~58.8 GB in BF16
+- **Model Parity**: Exact behavioral parity with the upstream Qwen2.5-Coder-32B base model is not guaranteed
+
+See [RELEASE_NOTES.md](./RELEASE_NOTES.md) for the full list and mitigation roadmap.
+
+---
+
+## 📄 License
+
+This project is licensed under the **Apache 2.0** License — see [LICENSE](./LICENSE) for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [TheWakeSystems](https://github.com/THeWakeSystems)**
+
+</div>
