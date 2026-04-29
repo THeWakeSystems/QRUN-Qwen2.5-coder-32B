@@ -1,7 +1,0 @@
-{
-  "_note": "建议从 Qwen2.5-Coder-32B-Instruct 原仓库复制并按需修改。",
-  "do_sample": true,
-  "temperature": 0.7,
-  "top_p": 0.8,
-  "max_new_tokens": 1024
-}
